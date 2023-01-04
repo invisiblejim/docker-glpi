@@ -14,6 +14,9 @@ SRC_GLPI=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/tags/
 TAR_GLPI=$(basename ${SRC_GLPI})
 FOLDER_GLPI=glpi/
 FOLDER_WEB=/var/www/html/
+FOLDER_CONFIG=/etc/glpi
+FOLDER_DATA=/var/lib/glpi
+FOLDER_LOGS=/var/log/glpi
 
 #check if TLS_REQCERT is present
 if !(grep -q "TLS_REQCERT" /etc/ldap/ldap.conf)
@@ -22,7 +25,7 @@ then
     echo -e "TLS_REQCERT\tnever" >> /etc/ldap/ldap.conf
 fi
 
-#Téléchargement et extraction des sources de GLPI
+#Download and Extract GLPI Source then add /inc/downstream.php to specify config directory outside of www-root
 if [ "$(ls ${FOLDER_WEB}${FOLDER_GLPI})" ];
 then
 	echo "GLPI is already installed"
@@ -30,7 +33,41 @@ else
 	wget -P ${FOLDER_WEB} ${SRC_GLPI}
 	tar -xzf ${FOLDER_WEB}${TAR_GLPI} -C ${FOLDER_WEB}
 	rm -Rf ${FOLDER_WEB}${TAR_GLPI}
+	echo "<?php
+	define('GLPI_CONFIG_DIR', '/etc/glpi/');
+	if (file_exists(GLPI_CONFIG_DIR . '/local_define.php')) {
+	require_once GLPI_CONFIG_DIR . '/local_define.php';
+	}" >> ${FOLDER_WEB}${FOLDER_GLPI}/inc/downstream.php
 	chown -R www-data:www-data ${FOLDER_WEB}${FOLDER_GLPI}
+fi
+
+
+# Check if config location contains data and if not add local_define.php to specify file data and log directories outside of www-root
+if [ "$(ls ${FOLDER_CONFIG})" ];
+then
+	echo "GLPI Config already exists"
+else
+	echo "<?php
+	define('GLPI_VAR_DIR', '/var/lib/glpi');
+	define('GLPI_LOG_DIR', '/var/log/glpi');" >> ${FOLDER_CONFIG}/local_define.php
+	chown -R www-data:www-data ${FOLDER_CONFIG}
+fi
+
+# Check if file location contains data and if not copy glpi/files
+if [ "$(ls ${FOLDER_DATA})" ];
+then
+	echo "GLPI file Data already exists"
+else
+	cp -rp ${FOLDER_WEB}${FOLDER_GLPI}/files/. ${FOLDER_DATA}
+	chown -R www-data:www-data ${FOLDER_DATA}
+fi
+
+# Check if log location contains data and if not set ownership
+if [ "$(ls ${FOLDER_LOGS})" ];
+then
+	echo "GLPI Log Data already exists"
+else
+	chown -R www-data:www-data ${FOLDER_LOGS}
 fi
 
 #Modification du vhost par défaut
