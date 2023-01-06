@@ -1,3 +1,35 @@
+#Forked from [Diouxx/docker-glpi](https://github.com/DiouxX/docker-glpi)
+
+The following Changes have been made from the upstream repo:
+
+- Upgrade PHP from 7.4 to 8.1
+- Configure GLPI Config, Files and Log Locations outside of wwwroot folder for better security and to separate application data from application code
+
+I am using the following persistent GLPI volumes in Docker Compose to accomoodate the additional file locations
+
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+      - glpi_version:/var/www/html/glpi   (Name this according to your current GLPI Version eg. glpi_10_0_0_5)
+      - glpi_config:/etc/glpi             (Config Directory Located out of wwwroot)
+      - glpi_files:/var/lib/glpi          (GLPI Files Located out of wwwroot)
+      - glpi_logs:/var/log/glpi           (Log Files Located out of wwwroot)
+      - glpi_phpconf:/etc/php/8.1/apache2 (facilitates config of php.ini for things like maximum upload size)
+      
+To upgrade your GLPI container to a newer GLPI version:
+
+1.  Back up your GLPI Data and database by whatever means you prefer
+2.  Edit your Docker compose file to rename the 'glpi_10_0_0_5' volume to the new volume number. (Do not delete or rename the actual exisiting docker volume)
+3.  Specify the VERSION_GLPI environment variable for your new GLPI version
+4.  Run docker compose down followed by docker compose up -d
+5.  Docker will pull the image for the new version, create an new volume for the new version's application files but your data will remain on the other volumes.
+6.  Browse to GLPI and complete the upgrade wizard as usual
+7.  If needed, copy any required data from volume glpi_version to volume glpi_new_version (may be needed for plugins and such)
+8.  Once you are happy you no longer need it you can remove volume glpi_version
+
+This is essentially a manual upgrade orchestrated via docker compose and avoiding unnecessary copying of files.
+      
+      
+
 # Project to deploy GLPI with docker
 
 ![Docker Pulls](https://img.shields.io/docker/pulls/diouxx/glpi) ![Docker Stars](https://img.shields.io/docker/stars/diouxx/glpi) [![](https://images.microbadger.com/badges/image/diouxx/glpi.svg)](http://microbadger.com/images/diouxx/glpi "Get your own image badge on microbadger.com") ![Docker Cloud Automated build](https://img.shields.io/docker/cloud/automated/diouxx/glpi)
