@@ -13,7 +13,7 @@ fi
 SRC_GLPI=$(curl -s https://api.github.com/repos/glpi-project/glpi/releases/tags/${VERSION_GLPI} | jq .assets[0].browser_download_url | tr -d \")
 TAR_GLPI=$(basename ${SRC_GLPI})
 FOLDER_GLPI=glpi/
-FOLDER_WEB=/var/www/html/glpi/public
+FOLDER_WEB=/var/www/html/
 FOLDER_CONFIG=/etc/glpi
 FOLDER_DATA=/var/lib/glpi
 FOLDER_LOGS=/var/log/glpi
