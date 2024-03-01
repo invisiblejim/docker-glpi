@@ -5,7 +5,7 @@ The following Changes have been made from the upstream repo:
 - Upgrade PHP from 7.4 to 8.1
 - Configure GLPI Config, Files and Log Locations outside of wwwroot folder for better security and to separate application data from application code
 
-I am using the following persistent GLPI volumes in Docker Compose to accomodate the additional file locations
+I am using the following persistent GLPI volumes in Docker Compose to accomodate the additional file locations:
 
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
